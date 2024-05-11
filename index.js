@@ -58,6 +58,19 @@ app.post('/food', async(req, res) =>{
     const food = req.body;
     const result = await foodsCollection.insertOne(food);
     res.send(result)
+});
+app.put('/foods/:id', async(req, res) =>{
+  const id = req.params.id;
+  const filter = {_id: new ObjectId(id)}
+   const food = req.body;
+   const options = { upsert: true };
+   const updateFood = {
+    $set:{
+      ...food
+    }
+   };
+   const result = await foodsCollection.updateOne(filter, updateFood, options)
+   res.send(result)
 })
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
