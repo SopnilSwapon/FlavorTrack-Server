@@ -38,11 +38,19 @@ async function run() {
     const result = await foodsCollection.find().toArray();
     res.send(result)
    });
-  //  ___________get specific food_____________//
+  //  ___________get a specific food_____________//
   app.get('/foods/:id', async (req, res) =>{
     const id = req.params.id;
     const query = {_id: new ObjectId(id)}
     const result = await foodsCollection.findOne(query);
+    res.send(result)
+  })
+  //_____________get some food which are added current user___________//
+  app.get('/foods/currentuser/:email', async (req, res) =>{
+    const email = req.params.email
+    console.log("current usersssss", email);
+    const query = {email: email};
+    const result = await foodsCollection.find(query).toArray();
     res.send(result)
   })
 //    _______________post food_________________//
