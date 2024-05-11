@@ -31,6 +31,8 @@ async function run() {
 
     // _____________foods related api__________________//
    const foodsCollection = client.db('deliciousFoods').collection('food');
+   const PurchaseFoodsCollection = client.db('deliciousFoods').collection('purchaseFoods');
+
     
 
 //________________get all foods _______________//
@@ -38,6 +40,12 @@ async function run() {
     const result = await foodsCollection.find().toArray();
     res.send(result)
    });
+   app.get('/foods/six', async(req, res) =>{
+    const size = parseInt(req.query.size);
+        const sorted = parseInt(req.query.sort);
+        const result = await foodsCollection.find().sort({ purchaseCount: sorted }).limit(size).toArray();
+    res.send(result)
+   })
   //  ___________get a specific food_____________//
   app.get('/foods/:id', async (req, res) =>{
     const id = req.params.id;
@@ -59,6 +67,7 @@ app.post('/food', async(req, res) =>{
     const result = await foodsCollection.insertOne(food);
     res.send(result)
 });
+// _____________update a food____________//
 app.put('/foods/:id', async(req, res) =>{
   const id = req.params.id;
   const filter = {_id: new ObjectId(id)}
@@ -71,6 +80,12 @@ app.put('/foods/:id', async(req, res) =>{
    };
    const result = await foodsCollection.updateOne(filter, updateFood, options)
    res.send(result)
+});
+// _____________post purchase food in new collection______________//
+ app.post('/purchase', async(req, res) =>{
+  const purchaseFood = req.body;
+  const result = await PurchaseFoodsCollection.insertOne(purchaseFood);
+  res.send(result)
 })
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
