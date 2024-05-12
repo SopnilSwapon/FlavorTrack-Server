@@ -29,10 +29,9 @@ async function run() {
 
 
     // _____________foods related api__________________//
+
    const foodsCollection = client.db('deliciousFoods').collection('food');
    const PurchaseFoodsCollection = client.db('deliciousFoods').collection('purchaseFoods');
-
-    
 
 //________________get all foods _______________//
    app.get('/foods', async(req, res) => {
@@ -56,12 +55,11 @@ async function run() {
   //_____________get some food which are added current user___________//
   app.get('/foods/currentuser/:email', async (req, res) =>{
     const email = req.params.email
-    console.log("current usersssss", email);
     const query = {email: email};
     const result = await foodsCollection.find(query).toArray();
     res.send(result)
   })
-//    _______________post food_________________//
+//    _______________post a food_________________//
 app.post('/food', async(req, res) =>{
     const food = req.body;
     const result = await foodsCollection.insertOne(food);
@@ -85,6 +83,19 @@ app.put('/foods/:id', async(req, res) =>{
  app.post('/purchase', async(req, res) =>{
   const purchaseFood = req.body;
   const result = await PurchaseFoodsCollection.insertOne(purchaseFood);
+  res.send(result)
+})
+// ___________get purchases foods of current logged user___________//
+app.get('/purchase/:email', async(req, res)=>{
+  const email = req.params.email;
+  const filter = {buyer_email: email}
+  const result = await PurchaseFoodsCollection.find(filter).toArray();
+  res.send(result);
+});
+app.delete('/purchase/:id', async(req, res) =>{
+  const id = req.params.id;
+  const query = {_id: new ObjectId(id)};
+  const result = await PurchaseFoodsCollection.deleteOne(query);
   res.send(result)
 })
     // Send a ping to confirm a successful connection
