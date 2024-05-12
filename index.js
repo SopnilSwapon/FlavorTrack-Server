@@ -5,8 +5,7 @@ const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
 const port = process.env.PORT || 5000
 
-//flavorTrackFoods
-// qkWRj5llbQALrvDf
+
 // ____middleware_____//
 app.use(cors());
 app.use(express.json());
@@ -43,8 +42,9 @@ async function run() {
    app.get('/foods/six', async(req, res) =>{
     const size = parseInt(req.query.size);
         const sorted = parseInt(req.query.sort);
-        const result = await foodsCollection.find().sort({ purchaseCount: sorted }).limit(size).toArray();
-    res.send(result)
+        // const result = await foodsCollection.find().sort({ purchase: sorted }).limit(size).toArray();
+        const result = await foodsCollection.find().sort({purchase: sorted}).limit(size).toArray();
+        res.send(result)
    })
   //  ___________get a specific food_____________//
   app.get('/foods/:id', async (req, res) =>{
