@@ -32,12 +32,21 @@ async function run() {
 
    const foodsCollection = client.db('deliciousFoods').collection('food');
    const PurchaseFoodsCollection = client.db('deliciousFoods').collection('purchaseFoods');
-
+   const galleryCollection = client.db('deliciousFoods').collection("galleryFood");
 //________________get all foods _______________//
    app.get('/foods', async(req, res) => {
     const result = await foodsCollection.find().toArray();
     res.send(result)
    });
+  //  ___________get foods according to name by search__________//
+  app.get('/foods/search/:name', async(req, res) =>{
+    const food = req.params.name;
+    const query = {foodName: food};
+    // const query = {foodName: food, $options: "i"}
+    const result = await foodsCollection.find(query).toArray();
+    res.send(result)
+  })
+  // ___________get six foods which are most sold______________//
    app.get('/foods/six', async(req, res) =>{
     const size = parseInt(req.query.size);
         const sorted = parseInt(req.query.sort);
@@ -59,6 +68,7 @@ async function run() {
     const result = await foodsCollection.find(query).toArray();
     res.send(result)
   })
+  
 //    _______________post a food_________________//
 app.post('/food', async(req, res) =>{
     const food = req.body;
@@ -96,6 +106,14 @@ app.delete('/purchase/:id', async(req, res) =>{
   const id = req.params.id;
   const query = {_id: new ObjectId(id)};
   const result = await PurchaseFoodsCollection.deleteOne(query);
+  res.send(result)
+})
+// _______gallery good get____________//
+// app.get(('/gallery/foods', async(req, res)=>{
+//  const result = req.body
+// }))
+app.get('/gallery', async(req, res)=>{
+  const result = await galleryCollection.find().toArray();
   res.send(result)
 })
     // Send a ping to confirm a successful connection
