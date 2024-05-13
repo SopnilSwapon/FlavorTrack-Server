@@ -109,11 +109,14 @@ app.delete('/purchase/:id', async(req, res) =>{
   res.send(result)
 })
 // _______gallery good get____________//
-// app.get(('/gallery/foods', async(req, res)=>{
-//  const result = req.body
-// }))
 app.get('/gallery', async(req, res)=>{
   const result = await galleryCollection.find().toArray();
+  res.send(result)
+});
+// _________Post a good in Gallery Collection___________//
+app.post('/galleryfood', async(req, res)=>{
+  const food = req.body;
+  const result = await galleryCollection.insertOne(food);
   res.send(result)
 })
     // Send a ping to confirm a successful connection
