@@ -1,5 +1,7 @@
 require('dotenv').config()
 const express = require('express');
+const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser')
 const cors = require('cors')
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
@@ -7,9 +9,37 @@ const port = process.env.PORT || 5000
 
 
 // ____middleware_____//
-app.use(cors());
+app.use(cors({
+  origin:["http://localhost:5173", 'http://localhost:5174', 'https://flavortrack-a59b2.web.app', 'https://flavortrack-a59b2.firebaseapp.com'],
+  credentials: true,
+}));
 app.use(express.json());
+app.use(cookieParser())
 
+// ____middlewares_________//
+const logger = (req, res, next) =>{
+  console.log("log info",  req.method, req.url);
+  next();
+}
+const verifyToken = (req, res, next) =>{
+  const token = req.cookies?.token;
+  // console.log('token in the  middle ware', token);
+  if(!token){
+    return res.status(401).send('unauthorized access')
+  }
+    jwt.verify(token, process.env.ACCESS_SECRET_TOKEN, (err, decoded) =>{
+    if(err){
+      return res.status(401).send('unauthorized access')
+    }
+    req.user= decoded;
+    next()
+    })
+  
+  // next()
+  // if(!token){
+  //   return res.sen
+  // }
+}
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.nshaxle.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
@@ -27,6 +57,23 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
 
+    // __________auth related api______________//
+    app.post('/jwt', async(req, res) =>{
+      const user = req.body;
+      console.log('this is user', user);
+      const token = jwt.sign(user, process.env.ACCESS_SECRET_TOKEN, {expiresIn: '1h'})
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none'
+      })
+      res.send({success: true})
+    })
+    app.post('/logOut', async(req, res) =>{
+      const user = req.body;
+      res.clearCookie('token' ,{maxAge: "0"}).send({success: true})
+      
+    })
 
     // _____________foods related api__________________//
 
@@ -62,10 +109,14 @@ async function run() {
     res.send(result)
   })
   //_____________get some food which are added current user___________//
-  app.get('/foods/currentuser/:email', async (req, res) =>{
-    const email = req.params.email
-    const query = {email: email};
-    const result = await foodsCollection.find(query).toArray();
+  app.get('/foods/currentuser/:email', logger, verifyToken, async (req, res) =>{
+    const email = req.params.email;
+    console.log('token owner info', req.user.email, 'crrnt info', req.query.email);
+    if(req.user.email !== req.params?.email){
+      return res.status(403).send('forbidden access')
+    }
+    const filter = {email: email};
+    const result = await foodsCollection.find(filter).toArray();
     res.send(result)
   })
   
@@ -120,7 +171,7 @@ app.post('/galleryfood', async(req, res)=>{
   res.send(result)
 })
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
