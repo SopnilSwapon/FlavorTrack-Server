@@ -23,7 +23,6 @@ const logger = (req, res, next) =>{
 }
 const verifyToken = (req, res, next) =>{
   const token = req.cookies?.token;
-  // console.log('token in the  middle ware', token);
   if(!token){
     return res.status(401).send('unauthorized access')
   }
@@ -34,11 +33,6 @@ const verifyToken = (req, res, next) =>{
     req.user= decoded;
     next()
     })
-  
-  // next()
-  // if(!token){
-  //   return res.sen
-  // }
 }
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.nshaxle.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
@@ -60,7 +54,7 @@ async function run() {
     // __________auth related api______________//
     app.post('/jwt', async(req, res) =>{
       const user = req.body;
-      console.log('this is user', user);
+      // console.log('this is user', user);
       const token = jwt.sign(user, process.env.ACCESS_SECRET_TOKEN, {expiresIn: '1h'})
       res.cookie('token', token, {
         httpOnly: true,
@@ -89,7 +83,6 @@ async function run() {
   app.get('/foods/search/:name', async(req, res) =>{
     const food = req.params.name;
     const query = {foodName: food};
-    // const query = {foodName: food, $options: "i"}
     const result = await foodsCollection.find(query).toArray();
     res.send(result)
   })
@@ -97,7 +90,6 @@ async function run() {
    app.get('/foods/six', async(req, res) =>{
     const size = parseInt(req.query.size);
         const sorted = parseInt(req.query.sort);
-        // const result = await foodsCollection.find().sort({ purchase: sorted }).limit(size).toArray();
         const result = await foodsCollection.find().sort({purchase: sorted}).limit(size).toArray();
         res.send(result)
    })
@@ -111,7 +103,6 @@ async function run() {
   //_____________get some food which are added current user___________//
   app.get('/foods/currentuser/:email', logger, verifyToken, async (req, res) =>{
     const email = req.params.email;
-    console.log('token owner info', req.user.email, 'crrnt info', req.query.email);
     if(req.user.email !== req.params?.email){
       return res.status(403).send('forbidden access')
     }
@@ -147,8 +138,11 @@ app.put('/foods/:id', async(req, res) =>{
   res.send(result)
 })
 // ___________get purchases foods of current logged user___________//
-app.get('/purchase/:email', async(req, res)=>{
+app.get('/purchase/:email', logger, verifyToken, async(req, res)=>{
   const email = req.params.email;
+  if(req.user.email !== email){
+    return res.status(403).send('forbidden access')
+  }
   const filter = {buyer_email: email}
   const result = await PurchaseFoodsCollection.find(filter).toArray();
   res.send(result);
