@@ -72,6 +72,7 @@ async function run() {
 
    const foodsCollection = client.db('deliciousFoods').collection('food');
    const PurchaseFoodsCollection = client.db('deliciousFoods').collection('purchaseFoods');
+   const usersCollection = client.db('deliciousFoods').collection('users');
    const galleryCollection = client.db('deliciousFoods').collection("galleryFood");
 //________________get all foods _______________//
    app.get('/foods', async(req, res) => {
@@ -163,12 +164,21 @@ app.get('/gallery', async(req, res)=>{
   const result = await galleryCollection.find().toArray();
   res.send(result)
 });
-// _________Post a good in Gallery Collection___________//
+// _________Post a food in Gallery Collection___________//
 app.post('/galleryfood', async(req, res)=>{
   const food = req.body;
   const result = await galleryCollection.insertOne(food);
   res.send(result)
 })
+// _______post a user in users collections__________//
+app.post('/user', async(req, res) =>{
+  const user = req.body;
+  console.log(user);
+  const result = await usersCollection.insertOne(user);
+  res.send(result)
+})
+
+// post user in 
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
