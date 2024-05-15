@@ -54,8 +54,7 @@ async function run() {
     // __________auth related api______________//
     app.post('/jwt', async(req, res) =>{
       const user = req.body;
-      // console.log('this is user', user);
-      const token = jwt.sign(user, process.env.ACCESS_SECRET_TOKEN, {expiresIn: '1h'})
+      const token = jwt.sign(user, process.env.ACCESS_SECRET_TOKEN, {expiresIn: '1s'})
       res.cookie('token', token, {
         httpOnly: true,
         secure: true,
@@ -112,9 +111,12 @@ async function run() {
   })
   
 //    _______________post a food_________________//
-app.post('/food', async(req, res) =>{
+app.post('/food', logger, verifyToken, async(req, res) =>{
     const food = req.body;
     const result = await foodsCollection.insertOne(food);
+    if(req.user.email !== req.query.email){
+      return res.status(403).send('forbidden access')
+    }
     res.send(result)
 });
 // _____________update a food____________//
@@ -134,6 +136,9 @@ app.put('/foods/:id', async(req, res) =>{
 // _____________post purchase food in new collection______________//
  app.post('/purchase', async(req, res) =>{
   const purchaseFood = req.body;
+  if(req.user.email !== req.query.email){
+    return res.status(403).send('forbidden access')
+  }
   const result = await PurchaseFoodsCollection.insertOne(purchaseFood);
   res.send(result)
 })
