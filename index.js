@@ -77,9 +77,17 @@ async function run() {
     const galleryCollection = client.db('deliciousFoods').collection("galleryFood");
     //________________get all foods _______________//
     app.get('/foods', async (req, res) => {
-      const result = await foodsCollection.find().toArray();
+      const page = parseInt(req.query.page);
+      const size = parseInt(req.query.size);
+      console.log('pagination query', page, size);
+      const result = await foodsCollection.find().skip(page * size).limit(size).toArray();
       res.send(result)
     });
+    //_______________foods count___________________//
+    app.get('/foodsCount', async (req, res) =>{
+      const count = await foodsCollection.estimatedDocumentCount();
+      res.send({count})
+    }) 
     //  ___________get foods according to name by search__________//
     app.get('/foods/search/:name', async (req, res) => {
       const food = req.params.name;
